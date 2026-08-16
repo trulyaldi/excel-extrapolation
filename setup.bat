@@ -3,6 +3,7 @@ setlocal EnableExtensions
 
 REM ============================================================
 REM Extraplus Excel Setup
+REM Supported Python versions: 3.11 - 3.14
 REM ============================================================
 
 cd /d "%~dp0"
@@ -36,6 +37,7 @@ if not exist "extrapolation.py" (
 if not exist "requirements.txt" (
     echo.
     echo ERROR: requirements.txt was not found.
+    echo Make sure requirements.txt is in the root Extraplus folder.
     goto :error
 )
 
@@ -43,7 +45,7 @@ echo Project files found.
 echo.
 
 REM ------------------------------------------------------------
-REM 2. Find Python 3.11 or newer
+REM 2. Find a supported Python installation
 REM ------------------------------------------------------------
 
 echo [2/5] Checking Python...
@@ -51,28 +53,56 @@ echo.
 
 set "PYTHON_CMD="
 
-REM First try the Windows Python Launcher.
-py -3 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>&1
+REM Prefer the newest explicitly supported Python version.
 
+py -3.14 --version >nul 2>&1
 if not errorlevel 1 (
-    set "PYTHON_CMD=py -3"
+    set "PYTHON_CMD=py -3.14"
     goto :python_found
 )
 
-REM Fall back to python on PATH.
-python -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>&1
+py -3.13 --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=py -3.13"
+    goto :python_found
+)
+
+py -3.12 --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=py -3.12"
+    goto :python_found
+)
+
+py -3.11 --version >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=py -3.11"
+    goto :python_found
+)
+
+REM Fall back to "python" if the Windows Python Launcher is unavailable.
+
+python -c "import sys; raise SystemExit(0 if (3,11) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>&1
 
 if not errorlevel 1 (
     set "PYTHON_CMD=python"
     goto :python_found
 )
 
-echo ERROR: Python 3.11 or newer was not found.
+echo ERROR: A supported Python version was not found.
 echo.
-echo Please install Python 3.11 or newer and run setup.bat again.
+echo Extraplus currently supports:
+echo.
+echo     Python 3.11
+echo     Python 3.12
+echo     Python 3.13
+echo     Python 3.14
+echo.
+echo Please install Python 3.11 or newer, up to Python 3.14,
+echo and then run setup.bat again.
 echo.
 echo During Python installation, it is recommended to enable:
-echo     "Add Python to PATH"
+echo.
+echo     Add Python to PATH
 echo.
 goto :error
 
@@ -81,7 +111,6 @@ goto :error
 
 echo Compatible Python installation found:
 %PYTHON_CMD% --version
-
 echo.
 
 REM ------------------------------------------------------------
@@ -93,8 +122,10 @@ echo.
 
 if exist ".venv\Scripts\python.exe" (
 
-    REM Make sure the existing environment is using Python 3.11+.
-    ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>&1
+    REM Verify that the existing virtual environment uses
+    REM a supported Python version.
+
+    ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if (3,11) <= sys.version_info[:2] <= (3,14) else 1)" >nul 2>&1
 
     if errorlevel 1 (
         echo Existing .venv uses an unsupported Python version.
@@ -103,6 +134,16 @@ if exist ".venv\Scripts\python.exe" (
 
         rmdir /s /q ".venv"
 
+        if exist ".venv" (
+            echo.
+            echo ERROR: Could not remove the existing .venv folder.
+            echo.
+            echo Close Excel, Command Prompt, VS Code, Python,
+            echo or any other program that may be using the environment.
+            echo Then run setup.bat again.
+            goto :error
+        )
+
         %PYTHON_CMD% -m venv .venv
 
         if errorlevel 1 (
@@ -110,6 +151,7 @@ if exist ".venv\Scripts\python.exe" (
             echo ERROR: Could not recreate the Python virtual environment.
             goto :error
         )
+
     ) else (
         echo Existing .venv found. Reusing it.
     )
@@ -125,6 +167,12 @@ if exist ".venv\Scripts\python.exe" (
         echo ERROR: Could not create the Python virtual environment.
         goto :error
     )
+)
+
+if not exist ".venv\Scripts\python.exe" (
+    echo.
+    echo ERROR: The virtual environment was not created correctly.
+    goto :error
 )
 
 echo.
@@ -154,7 +202,11 @@ echo.
 if errorlevel 1 (
     echo.
     echo ERROR: Could not install Python dependencies.
-    echo Check your internet connection and requirements.txt.
+    echo.
+    echo Check:
+    echo     - Your internet connection
+    echo     - requirements.txt
+    echo     - Your Python installation
     goto :error
 )
 
@@ -175,13 +227,26 @@ if not exist ".venv\Scripts\xlwings.exe" (
     goto :error
 )
 
+REM Warn if Excel is currently running.
+
+tasklist /FI "IMAGENAME eq EXCEL.EXE" 2>nul | find /I "EXCEL.EXE" >nul
+
+if not errorlevel 1 (
+    echo.
+    echo ERROR: Microsoft Excel is currently running.
+    echo.
+    echo Close ALL Excel windows before installing the xlwings add-in.
+    echo Then run setup.bat again.
+    goto :error
+)
+
 ".venv\Scripts\xlwings.exe" addin install
 
 if errorlevel 1 (
     echo.
     echo ERROR: xlwings add-in installation failed.
     echo.
-    echo Make sure ALL Excel windows are closed and run setup.bat again.
+    echo Make sure all Excel windows are closed and run setup.bat again.
     goto :error
 )
 
@@ -208,7 +273,7 @@ echo ============================================================
 echo.
 echo Complete the following steps in Excel:
 echo.
-echo 1. Open Extraplus.xlsm.
+echo 1. Open your .xlsm workbook.
 echo.
 echo 2. Open the xlwings ribbon.
 echo.
@@ -256,9 +321,11 @@ echo 9. Click:
 echo.
 echo     Import Python UDFs
 echo.
-echo 10. If necessary, click:
+echo 10. Click:
 echo.
 echo     Restart UDF Server
+echo.
+echo 11. Save the workbook as an .xlsm file.
 echo.
 echo ============================================================
 echo                     TEST FUNCTIONS
