@@ -2,6 +2,8 @@
 
 This repository installs the Extraplus Python UDFs into Microsoft Excel on Windows.
 
+The UDFs are intended to be imported into **Excel Macro-Enabled Workbooks (`.xlsm`)**.
+
 After installation, functions such as the following are available in Excel:
 
 ```excel
@@ -15,6 +17,7 @@ After installation, functions such as the following are available in Excel:
 * Windows
 * Microsoft Excel Desktop
 * Python 3.11 or newer
+* An Excel Macro-Enabled Workbook (`.xlsm`)
 * Internet connection during the initial installation
 
 ## Repository Files
@@ -25,10 +28,20 @@ Keep these files together in the same folder:
 extraplus-excel/
 ├── extrap.py
 ├── extrapolation.py
-├── Extraplus.xlsm
 ├── requirements.txt
 ├── setup.bat
-└── README.md
+├── README.md
+└── your-workbook.xlsm
+```
+
+Your `.xlsm` workbook can have any filename.
+
+For example:
+
+```text
+calculation.xlsm
+results.xlsm
+energy_extrapolation.xlsm
 ```
 
 ---
@@ -63,12 +76,6 @@ or:
 Python 3.12.x
 ```
 
-or:
-
-```text
-Python 3.13.x
-```
-
 ---
 
 ## 2. Download Extraplus
@@ -92,13 +99,59 @@ Do not run Extraplus directly from inside the ZIP file.
 
 ---
 
-## 3. Close Excel
+## 3. Prepare Your Excel Workbook
 
-Close all open Excel windows before continuing.
+The workbook must be an **Excel Macro-Enabled Workbook (`.xlsm`)**.
+
+If your workbook is currently `.xlsx`, open it in Excel and save it as:
+
+```text
+File
+→ Save As
+→ Excel Macro-Enabled Workbook (*.xlsm)
+```
+
+For example:
+
+```text
+calculation.xlsx
+```
+
+should become:
+
+```text
+calculation.xlsm
+```
+
+Place the `.xlsm` workbook in the same folder as:
+
+```text
+extrap.py
+extrapolation.py
+setup.bat
+requirements.txt
+```
+
+For example:
+
+```text
+extraplus-excel/
+├── extrap.py
+├── extrapolation.py
+├── requirements.txt
+├── setup.bat
+└── calculation.xlsm
+```
 
 ---
 
-## 4. Run `setup.bat`
+## 4. Close Excel
+
+Close **all Excel windows** before continuing.
+
+---
+
+## 5. Run `setup.bat`
 
 Double-click:
 
@@ -117,14 +170,16 @@ Wait until the script reports that the installation is complete.
 
 ---
 
-# Configure Excel
+# Configure the `.xlsm` Workbook
 
-## 5. Open the Workbook
+## 6. Open Your `.xlsm` File
 
-Open:
+Open your macro-enabled workbook.
+
+For example:
 
 ```text
-Extraplus.xlsm
+calculation.xlsm
 ```
 
 You should see an **xlwings** tab in the Excel ribbon.
@@ -139,11 +194,11 @@ If the xlwings tab does not appear:
 .venv\Scripts\xlwings.exe addin install
 ```
 
-4. Reopen Excel.
+4. Reopen the `.xlsm` workbook.
 
 ---
 
-## 6. Set the Python Interpreter
+## 7. Set the Python Interpreter
 
 Open the **xlwings** tab.
 
@@ -161,7 +216,7 @@ C:\Users\YourName\Documents\extraplus-excel\.venv\Scripts\python.exe
 
 ---
 
-## 7. Set the UDF Module
+## 8. Set the UDF Module
 
 In the xlwings ribbon, set:
 
@@ -189,7 +244,7 @@ extrapolation
 
 ---
 
-## 8. Enable Workbook PYTHONPATH
+## 9. Enable Workbook PYTHONPATH
 
 In the xlwings ribbon, enable:
 
@@ -197,11 +252,18 @@ In the xlwings ribbon, enable:
 Add Workbook to PYTHONPATH
 ```
 
-This allows Python to find `extrapolation.py` and `extrap.py` in the workbook folder.
+This allows Python to find:
+
+```text
+extrapolation.py
+extrap.py
+```
+
+in the same folder as the `.xlsm` workbook.
 
 ---
 
-## 9. Enable VBA Project Access
+## 10. Enable VBA Project Access
 
 In Excel go to:
 
@@ -223,7 +285,7 @@ Click **OK**.
 
 ---
 
-## 10. Enable the xlwings VBA Reference
+## 11. Enable the xlwings VBA Reference
 
 Press:
 
@@ -254,7 +316,9 @@ and tick the checkbox:
 
 Click **OK**.
 
-This step is required. If the xlwings reference is not enabled, Excel may display:
+This step is required.
+
+If the xlwings reference is not enabled, Excel may display:
 
 ```text
 Object required
@@ -264,9 +328,9 @@ when using the UDFs.
 
 ---
 
-## 11. Import the Python UDFs
+## 12. Import the Python UDFs
 
-Return to Excel.
+Return to the `.xlsm` workbook.
 
 Open the **xlwings** tab and click:
 
@@ -281,6 +345,8 @@ Then click:
 ```text
 Restart UDF Server
 ```
+
+Save the `.xlsm` workbook afterward so that the imported VBA wrappers are preserved.
 
 ---
 
@@ -329,42 +395,71 @@ The available model families are:
 
 ---
 
-# Using Extraplus in Another Workbook
+# Using Extraplus in Another `.xlsm` Workbook
 
-The simplest option is to save the workbook as:
+For every additional `.xlsm` workbook that should use Extraplus:
 
-```text
-Excel Macro-Enabled Workbook (*.xlsm)
-```
-
-Then configure the workbook in the xlwings ribbon:
-
-```text
-Interpreter   = <Extraplus folder>\.venv\Scripts\python.exe
-UDF Modules   = extrapolation
-```
-
-Enable:
-
-```text
-Add Workbook to PYTHONPATH
-```
-
-Make sure the workbook is in the same folder as:
+1. Place the `.xlsm` file in the same folder as:
 
 ```text
 extrap.py
 extrapolation.py
 ```
 
-Then:
+2. Open the `.xlsm` workbook.
 
-1. Press `Alt + F11`.
-2. Go to `Tools → References`.
-3. Tick `xlwings`.
-4. Return to Excel.
-5. Click `Import Python UDFs`.
-6. Click `Restart UDF Server`.
+3. In the xlwings ribbon, set:
+
+```text
+Interpreter = <Extraplus folder>\.venv\Scripts\python.exe
+```
+
+4. Set:
+
+```text
+UDF Modules = extrapolation
+```
+
+5. Enable:
+
+```text
+Add Workbook to PYTHONPATH
+```
+
+6. Press:
+
+```text
+Alt + F11
+```
+
+7. Go to:
+
+```text
+Tools
+→ References
+```
+
+8. Tick:
+
+```text
+☑ xlwings
+```
+
+9. Return to Excel.
+
+10. Click:
+
+```text
+Import Python UDFs
+```
+
+11. Click:
+
+```text
+Restart UDF Server
+```
+
+12. Save the `.xlsm` workbook.
 
 ---
 
@@ -378,7 +473,7 @@ Press:
 Alt + F11
 ```
 
-Then:
+Then go to:
 
 ```text
 Tools
@@ -393,7 +488,7 @@ Make sure:
 
 is checked.
 
-After enabling it, return to Excel and run:
+After enabling it, return to Excel and click:
 
 ```text
 Import Python UDFs
@@ -417,7 +512,7 @@ Open Command Prompt in the Extraplus folder and run:
 .venv\Scripts\xlwings.exe addin install
 ```
 
-Reopen Excel.
+Reopen the `.xlsm` workbook.
 
 Then:
 
@@ -452,16 +547,30 @@ Import Python UDFs
 
 again.
 
+Make sure the workbook is saved as:
+
+```text
+.xlsm
+```
+
 ---
 
 ## `ModuleNotFoundError`
 
-Make sure these files are still in the same folder:
+Make sure the `.xlsm` workbook is in the same folder as:
 
 ```text
-Extraplus.xlsm
 extrap.py
 extrapolation.py
+```
+
+For example:
+
+```text
+extraplus-excel/
+├── extrap.py
+├── extrapolation.py
+└── calculation.xlsm
 ```
 
 Also make sure:
@@ -488,10 +597,10 @@ Then reopen Excel.
 
 ## Macros Are Blocked
 
-If Windows blocks the downloaded workbook:
+If Windows blocks a downloaded `.xlsm` workbook:
 
 1. Close Excel.
-2. Right-click `Extraplus.xlsm`.
+2. Right-click the `.xlsm` file.
 3. Select **Properties**.
 4. If **Unblock** appears, tick it.
 5. Click **Apply**.
@@ -507,14 +616,14 @@ After downloading or pulling a newer version:
 git pull
 ```
 
-If only the Python fitting code changed, use:
+If only the Python fitting code changed:
 
 ```text
 xlwings
 → Restart UDF Server
 ```
 
-If the Excel UDF names or arguments changed, use:
+If the Excel UDF names or arguments changed:
 
 ```text
 xlwings
@@ -523,8 +632,10 @@ xlwings
 
 again.
 
-If `requirements.txt` changed, rerun:
+If `requirements.txt` changed:
 
 ```text
 setup.bat
 ```
+
+should be run again.
