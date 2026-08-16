@@ -1,50 +1,518 @@
-Extraplus for Excel
+# Extraplus for Excel
 
-Extraplus provides Excel user-defined functions (UDFs) for extrapolating finite numerical data toward an asymptotic or infinite-limit value.
+This repository installs the Extraplus Python UDFs into Microsoft Excel on Windows.
 
-The numerical fitting algorithm lives in extrap.py. The Excel-facing wrapper lives in extrapolation.py and exposes the fitting routines through xlwings.
+After installation, functions such as the following are available in Excel:
 
-Once installed, Extraplus behaves like a normal Excel function:
-
+```excel
 =EXTRAP1(A2:A20,B2:B20)
-
-You can also request the extrapolation uncertainty and fitted decay rate:
-
 =UNCERTAINTY1(A2:A20,B2:B20)
 =DECAY_RATE1(A2:A20,B2:B20)
+```
 
-Quick Start
+## Requirements
 
-For a new Windows computer:
+* Windows
+* Microsoft Excel Desktop
+* Python 3.11
+* Internet connection during the initial installation
+
+## Repository Files
+
+Keep these files together in the same folder:
+
+```text
+extraplus-excel/
+├── extrap.py
+├── extrapolation.py
+├── Extraplus.xlsm
+├── requirements.txt
+├── setup.bat
+└── README.md
+```
+
+---
+
+# Installation
+
+## 1. Install Python 3.11
 
 Install Python 3.11.
 
-Download or clone this repository.
+During installation, enable:
 
-Close all Excel windows.
+```text
+Add Python to PATH
+```
 
-Run setup.bat.
+To verify the installation, open Command Prompt and run:
 
-Open Extraplus.xlsm.
+```bat
+py -3.11 --version
+```
 
-Open the xlwings tab in Excel.
+You should see:
 
-Set Interpreter to the .venv Python created by setup.bat.
+```text
+Python 3.11.x
+```
 
-Set UDF Modules to extrapolation.
+---
 
-Enable Add Workbook to PYTHONPATH.
+## 2. Download Extraplus
 
-Enable Trust access to the VBA project object model in Excel's Trust Center.
+Either clone this repository:
 
-Press Alt + F11 to open the VBA editor.
+```bat
+git clone <repository-url>
+```
 
-Go to Tools -> References and tick xlwings.
+or download it from GitHub:
 
-Return to Excel and click Import Python UDFs in the xlwings ribbon.
+```text
+Code
+→ Download ZIP
+```
 
-If needed, click Restart UDF Server.
+If you download the ZIP, extract it before continuing.
 
-Test the installation with:
+Do not run Extraplus directly from inside the ZIP file.
 
+---
+
+## 3. Close Excel
+
+Close all open Excel windows before continuing.
+
+---
+
+## 4. Run `setup.bat`
+
+Double-click:
+
+```text
+setup.bat
+```
+
+The script will automatically:
+
+1. Check for Python 3.11.
+2. Create a local `.venv` Python environment.
+3. Install the required Python packages.
+4. Install the xlwings Excel add-in.
+
+Wait until the script reports that the installation is complete.
+
+---
+
+# Configure Excel
+
+## 5. Open the Workbook
+
+Open:
+
+```text
+Extraplus.xlsm
+```
+
+You should see an **xlwings** tab in the Excel ribbon.
+
+If the xlwings tab does not appear:
+
+1. Close Excel.
+2. Open Command Prompt in the Extraplus folder.
+3. Run:
+
+```bat
+.venv\Scripts\xlwings.exe addin install
+```
+
+4. Reopen Excel.
+
+---
+
+## 6. Set the Python Interpreter
+
+Open the **xlwings** tab.
+
+Set **Interpreter** to:
+
+```text
+<Extraplus folder>\.venv\Scripts\python.exe
+```
+
+For example:
+
+```text
+C:\Users\YourName\Documents\extraplus-excel\.venv\Scripts\python.exe
+```
+
+---
+
+## 7. Set the UDF Module
+
+In the xlwings ribbon, set:
+
+```text
+UDF Modules
+```
+
+to:
+
+```text
+extrapolation
+```
+
+Do not enter:
+
+```text
+extrapolation.py
+```
+
+Use only:
+
+```text
+extrapolation
+```
+
+---
+
+## 8. Enable Workbook PYTHONPATH
+
+In the xlwings ribbon, enable:
+
+```text
+Add Workbook to PYTHONPATH
+```
+
+This allows Python to find `extrapolation.py` and `extrap.py` in the workbook folder.
+
+---
+
+## 9. Enable VBA Project Access
+
+In Excel go to:
+
+```text
+File
+→ Options
+→ Trust Center
+→ Trust Center Settings
+→ Macro Settings
+```
+
+Enable:
+
+```text
+Trust access to the VBA project object model
+```
+
+Click **OK**.
+
+---
+
+## 10. Enable the xlwings VBA Reference
+
+Press:
+
+```text
+Alt + F11
+```
+
+to open the VBA editor.
+
+Then go to:
+
+```text
+Tools
+→ References
+```
+
+Find:
+
+```text
+xlwings
+```
+
+and tick the checkbox:
+
+```text
+☑ xlwings
+```
+
+Click **OK**.
+
+This step is required. If the xlwings reference is not enabled, Excel may display:
+
+```text
+Object required
+```
+
+when using the UDFs.
+
+---
+
+## 11. Import the Python UDFs
+
+Return to Excel.
+
+Open the **xlwings** tab and click:
+
+```text
+Import Python UDFs
+```
+
+Wait for the import to finish.
+
+Then click:
+
+```text
+Restart UDF Server
+```
+
+---
+
+# Test the Installation
+
+Suppose:
+
+```text
+A2:A20 = x values
+B2:B20 = y values
+```
+
+Test:
+
+```excel
 =EXTRAP1(A2:A20,B2:B20)
+```
+
+You can also test:
+
+```excel
+=UNCERTAINTY1(A2:A20,B2:B20)
+```
+
+and:
+
+```excel
+=DECAY_RATE1(A2:A20,B2:B20)
+```
+
+The available model families are:
+
+```excel
+=EXTRAP1(...)
+=EXTRAP2(...)
+=EXTRAP3(...)
+
+=UNCERTAINTY1(...)
+=UNCERTAINTY2(...)
+=UNCERTAINTY3(...)
+
+=DECAY_RATE1(...)
+=DECAY_RATE2(...)
+=DECAY_RATE3(...)
+```
+
+---
+
+# Using Extraplus in Another Workbook
+
+The simplest option is to save the workbook as:
+
+```text
+Excel Macro-Enabled Workbook (*.xlsm)
+```
+
+Then configure the workbook in the xlwings ribbon:
+
+```text
+Interpreter   = <Extraplus folder>\.venv\Scripts\python.exe
+UDF Modules   = extrapolation
+```
+
+Enable:
+
+```text
+Add Workbook to PYTHONPATH
+```
+
+Make sure the workbook is in the same folder as:
+
+```text
+extrap.py
+extrapolation.py
+```
+
+Then:
+
+1. Press `Alt + F11`.
+2. Go to `Tools → References`.
+3. Tick `xlwings`.
+4. Return to Excel.
+5. Click `Import Python UDFs`.
+6. Click `Restart UDF Server`.
+
+---
+
+# Troubleshooting
+
+## `Object required`
+
+Press:
+
+```text
+Alt + F11
+```
+
+Then:
+
+```text
+Tools
+→ References
+```
+
+Make sure:
+
+```text
+☑ xlwings
+```
+
+is checked.
+
+After enabling it, return to Excel and run:
+
+```text
+Import Python UDFs
+```
+
+followed by:
+
+```text
+Restart UDF Server
+```
+
+---
+
+## xlwings Is Missing from References
+
+Close Excel completely.
+
+Open Command Prompt in the Extraplus folder and run:
+
+```bat
+.venv\Scripts\xlwings.exe addin install
+```
+
+Reopen Excel.
+
+Then:
+
+```text
+Alt + F11
+→ Tools
+→ References
+→ ☑ xlwings
+```
+
+---
+
+## `#NAME?`
+
+If Excel displays:
+
+```text
+#NAME?
+```
+
+check that:
+
+```text
+UDF Modules = extrapolation
+```
+
+Then click:
+
+```text
+Import Python UDFs
+```
+
+again.
+
+---
+
+## `ModuleNotFoundError`
+
+Make sure these files are still in the same folder:
+
+```text
+Extraplus.xlsm
+extrap.py
+extrapolation.py
+```
+
+Also make sure:
+
+```text
+Add Workbook to PYTHONPATH
+```
+
+is enabled.
+
+---
+
+## xlwings Tab Is Missing
+
+Close Excel and run:
+
+```bat
+.venv\Scripts\xlwings.exe addin install
+```
+
+Then reopen Excel.
+
+---
+
+## Macros Are Blocked
+
+If Windows blocks the downloaded workbook:
+
+1. Close Excel.
+2. Right-click `Extraplus.xlsm`.
+3. Select **Properties**.
+4. If **Unblock** appears, tick it.
+5. Click **Apply**.
+6. Reopen the workbook.
+
+---
+
+# Updating Extraplus
+
+After downloading or pulling a newer version:
+
+```bat
+git pull
+```
+
+If only the Python fitting code changed, use:
+
+```text
+xlwings
+→ Restart UDF Server
+```
+
+If the Excel UDF names or arguments changed, use:
+
+```text
+xlwings
+→ Import Python UDFs
+```
+
+again.
+
+If `requirements.txt` changed, rerun:
+
+```text
+setup.bat
+```
