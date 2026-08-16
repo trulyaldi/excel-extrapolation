@@ -14,7 +14,7 @@ After installation, functions such as the following are available in Excel:
 
 * Windows
 * Microsoft Excel Desktop
-* Python 3.11
+* Python 3.11 or newer
 * Internet connection during the initial installation
 
 ## Repository Files
@@ -35,9 +35,9 @@ extraplus-excel/
 
 # Installation
 
-## 1. Install Python 3.11
+## 1. Install Python 3.11 or Newer
 
-Install Python 3.11.
+Install **Python 3.11 or newer**.
 
 During installation, enable:
 
@@ -48,13 +48,25 @@ Add Python to PATH
 To verify the installation, open Command Prompt and run:
 
 ```bat
-py -3.11 --version
+py -3 --version
 ```
 
-You should see:
+You should see Python 3.11 or newer, for example:
 
 ```text
 Python 3.11.x
+```
+
+or:
+
+```text
+Python 3.12.x
+```
+
+or:
+
+```text
+Python 3.13.x
 ```
 
 ---
@@ -96,7 +108,7 @@ setup.bat
 
 The script will automatically:
 
-1. Check for Python 3.11.
+1. Check for Python 3.11 or newer.
 2. Create a local `.venv` Python environment.
 3. Install the required Python packages.
 4. Install the xlwings Excel add-in.

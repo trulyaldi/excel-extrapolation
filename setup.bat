@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions
 
 REM ============================================================
 REM Extraplus Excel Setup
@@ -43,39 +43,82 @@ echo Project files found.
 echo.
 
 REM ------------------------------------------------------------
-REM 2. Check Python 3.11
+REM 2. Find Python 3.11 or newer
 REM ------------------------------------------------------------
 
-echo [2/5] Checking Python 3.11...
+echo [2/5] Checking Python...
+echo.
 
-py -3.11 --version >nul 2>&1
+set "PYTHON_CMD="
 
-if errorlevel 1 (
-    echo.
-    echo ERROR: Python 3.11 was not found.
-    echo.
-    echo Please install Python 3.11 and then run setup.bat again.
-    echo.
-    echo During Python installation, enable:
-    echo     "Add Python to PATH"
-    echo.
-    goto :error
+REM First try the Windows Python Launcher.
+py -3 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>&1
+
+if not errorlevel 1 (
+    set "PYTHON_CMD=py -3"
+    goto :python_found
 )
 
-py -3.11 --version
+REM Fall back to python on PATH.
+python -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>&1
+
+if not errorlevel 1 (
+    set "PYTHON_CMD=python"
+    goto :python_found
+)
+
+echo ERROR: Python 3.11 or newer was not found.
+echo.
+echo Please install Python 3.11 or newer and run setup.bat again.
+echo.
+echo During Python installation, it is recommended to enable:
+echo     "Add Python to PATH"
+echo.
+goto :error
+
+
+:python_found
+
+echo Compatible Python installation found:
+%PYTHON_CMD% --version
+
 echo.
 
 REM ------------------------------------------------------------
-REM 3. Create virtual environment
+REM 3. Create or validate virtual environment
 REM ------------------------------------------------------------
 
 echo [3/5] Setting up Python virtual environment...
+echo.
 
 if exist ".venv\Scripts\python.exe" (
-    echo Existing .venv found. Reusing it.
+
+    REM Make sure the existing environment is using Python 3.11+.
+    ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" >nul 2>&1
+
+    if errorlevel 1 (
+        echo Existing .venv uses an unsupported Python version.
+        echo Recreating .venv...
+        echo.
+
+        rmdir /s /q ".venv"
+
+        %PYTHON_CMD% -m venv .venv
+
+        if errorlevel 1 (
+            echo.
+            echo ERROR: Could not recreate the Python virtual environment.
+            goto :error
+        )
+    ) else (
+        echo Existing .venv found. Reusing it.
+    )
+
 ) else (
+
     echo Creating .venv...
-    py -3.11 -m venv .venv
+
+    %PYTHON_CMD% -m venv .venv
 
     if errorlevel 1 (
         echo.
@@ -84,6 +127,9 @@ if exist ".venv\Scripts\python.exe" (
     )
 )
 
+echo.
+echo Virtual environment Python:
+".venv\Scripts\python.exe" --version
 echo.
 
 REM ------------------------------------------------------------
@@ -101,11 +147,14 @@ if errorlevel 1 (
     goto :error
 )
 
+echo.
+
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt
 
 if errorlevel 1 (
     echo.
     echo ERROR: Could not install Python dependencies.
+    echo Check your internet connection and requirements.txt.
     goto :error
 )
 
@@ -132,7 +181,7 @@ if errorlevel 1 (
     echo.
     echo ERROR: xlwings add-in installation failed.
     echo.
-    echo Make sure all Excel windows are closed and run setup.bat again.
+    echo Make sure ALL Excel windows are closed and run setup.bat again.
     goto :error
 )
 
@@ -149,11 +198,17 @@ echo Python environment:
 echo.
 echo     %CD%\.venv
 echo.
-echo ------------------------------------------------------------
-echo Excel configuration
-echo ------------------------------------------------------------
+echo Python interpreter:
 echo.
-echo 1. Open Excel.
+echo     %CD%\.venv\Scripts\python.exe
+echo.
+echo ============================================================
+echo                 EXCEL CONFIGURATION
+echo ============================================================
+echo.
+echo Complete the following steps in Excel:
+echo.
+echo 1. Open Extraplus.xlsm.
 echo.
 echo 2. Open the xlwings ribbon.
 echo.
@@ -169,29 +224,66 @@ echo 5. Enable:
 echo.
 echo     Add Workbook to PYTHONPATH
 echo.
-echo 6. Click:
+echo 6. Go to:
+echo.
+echo     File
+echo     ^> Options
+echo     ^> Trust Center
+echo     ^> Trust Center Settings
+echo     ^> Macro Settings
+echo.
+echo    Enable:
+echo.
+echo     Trust access to the VBA project object model
+echo.
+echo 7. Press:
+echo.
+echo     Alt + F11
+echo.
+echo    Then go to:
+echo.
+echo     Tools ^> References
+echo.
+echo    Tick:
+echo.
+echo     xlwings
+echo.
+echo    Then click OK.
+echo.
+echo 8. Return to Excel and open the xlwings ribbon.
+echo.
+echo 9. Click:
 echo.
 echo     Import Python UDFs
 echo.
-echo 7. If necessary, open:
+echo 10. If necessary, click:
 echo.
-echo     Alt+F11 ^> Tools ^> References
+echo     Restart UDF Server
 echo.
-echo    and make sure "xlwings" is checked.
+echo ============================================================
+echo                     TEST FUNCTIONS
+echo ============================================================
 echo.
-echo ------------------------------------------------------------
-echo You should then be able to use functions such as:
+echo You should now be able to use:
 echo.
 echo     =EXTRAP1(A2:A20,B2:B20)
-echo     =UNCERTY1(A2:A20,B2:B20)
-echo     =PARAMETER_B1(A2:A20,B2:B20)
-echo ------------------------------------------------------------
+echo     =UNCERTAINTY1(A2:A20,B2:B20)
+echo     =DECAY_RATE1(A2:A20,B2:B20)
+echo.
+echo Other available model families:
+echo.
+echo     EXTRAP1 / EXTRAP2 / EXTRAP3
+echo     UNCERTAINTY1 / UNCERTAINTY2 / UNCERTAINTY3
+echo     DECAY_RATE1 / DECAY_RATE2 / DECAY_RATE3
+echo.
+echo ============================================================
 echo.
 pause
 exit /b 0
 
 
 :error
+
 echo.
 echo ============================================================
 echo                    SETUP FAILED
